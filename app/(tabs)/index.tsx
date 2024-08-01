@@ -1,70 +1,120 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image } from "expo-image";
+import { StyleSheet, Text, View, Dimensions, FlatList } from "react-native";
+import { appLogo } from "../../assets/images/index";
+import { EvilIcons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect } from "react";
+import axios from "axios";
+import React from "react";
+import useStore, { generateUUID } from "@/hooks/useStore";
+import NewsArticle from "@/components/NewsArticle";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width, height } = Dimensions.get("window");
 
 export default function HomeScreen() {
+  const {
+    newsListing,
+    refreshHeadlines,
+    dripTimer,
+    pinnedArticles,
+    pinArticle,
+    unpinArticle,
+  } = useStore((state) => ({
+    newsListing: state.newsListing,
+    refreshHeadlines: state.refreshHeadlines,
+    dripTimer: state.dripTimer,
+    pinnedArticles: state.pinnedArticles,
+    pinArticle: state.pinArticle,
+    unpinArticle: state.unpinArticle,
+  }));
+  useEffect(() => {
+    refreshHeadlines();
+
+    return () => {
+      if (dripTimer) clearInterval(dripTimer);
+    };
+  }, [refreshHeadlines, dripTimer]);
+
+  const renderItem = useCallback(({ item }: any) => {
+    return <NewsArticle data={item} />;
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <StatusBar
+          animated={true}
+          backgroundColor="white"
+          hideTransitionAnimation="fade"
+          networkActivityIndicatorVisible={true}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View style={styles.header}>
+          <Image source={appLogo} contentFit="contain" style={styles.appLogo} />
+          <EvilIcons
+            name="refresh"
+            size={32}
+            color={"#000"}
+            style={styles.refreshIcon}
+            onPress={refreshHeadlines}
+          />
+        </View>
+        <View style={styles.listContainer}>
+          <FlatList
+            data={newsListing}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={renderItem}
+          />
+        </View>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+    backgroundColor: "#FFFF",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  appLogo: {
+    width: width / 3,
+    height: height / 9,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  header: {
+    backgroundColor: "white",
+    height: height / 6,
+    paddingTop: height / 16,
+    paddingHorizontal: width / 22,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+
+    width: width,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    zIndex: 2,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+
+  refreshIcon: {
+    marginBottom: height / 26,
+  },
+  headerText: {
+    fontFamily: "SatoshiBlack",
+    fontSize: 22,
+  },
+  listContainer: {
+    flex: 1,
+    backgroundColor: "white",
+    height: height,
+    width: width,
+    paddingBottom: "10%",
   },
 });
