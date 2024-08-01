@@ -13,20 +13,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 const { width, height } = Dimensions.get("window");
 
 export default function HomeScreen() {
-  const {
-    newsListing,
-    refreshHeadlines,
-    dripTimer,
-    pinnedArticles,
-    pinArticle,
-    unpinArticle,
-  } = useStore((state) => ({
+  const { newsListing, refreshHeadlines, dripTimer } = useStore((state) => ({
     newsListing: state.newsListing,
     refreshHeadlines: state.refreshHeadlines,
     dripTimer: state.dripTimer,
-    pinnedArticles: state.pinnedArticles,
-    pinArticle: state.pinArticle,
-    unpinArticle: state.unpinArticle,
   }));
   useEffect(() => {
     refreshHeadlines();

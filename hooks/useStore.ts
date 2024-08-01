@@ -108,20 +108,18 @@ const useStore = create<NewsState>()(
               ...article,
               id: generateUUID(),
             }));
-          set((state) => {
-            newsListing: articles;
-          });
-          // set((state) => {
-          //   const pinned = state.pinnedArticles
-          //     .map((id) =>
-          //       state.newsListing.find((article) => article.id === id)
-          //     )
-          //     .filter(Boolean) as NewsArticle[];
 
-          //   return {
-          //     newsListing: [...pinned, ...articles],
-          //   };
-          // });
+          set((state) => {
+            const pinned = state.pinnedArticles
+              .map((id) =>
+                state.newsListing.find((article) => article.id === id)
+              )
+              .filter(Boolean) as NewsArticle[];
+
+            return {
+              newsListing: [...pinned, ...articles],
+            };
+          });
 
           // const newTimer = setInterval(() => {
           //   get().addRandomHeadlines();
