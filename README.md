@@ -20,3 +20,7 @@ Most of the functionality lies in the useStore hook
 The imageURL for the source was not available in the response sample.
 
 Also when I went through the docs and called the API .. It was only fetching around 60-70 articles so I've implemented based on those conditions.
+
+Will share the video once I get the credits for requests.
+
+![screenshot](screenshot.png)
