@@ -34,7 +34,8 @@ interface NewsArticleProps {
 }
 
 const NewsArticle: React.FC<NewsArticleProps> = ({ data }) => {
-  const { pinnedArticles, pinArticle, unpinArticle } = useStore();
+  const { pinnedArticles, pinArticle, unpinArticle, deleteArticle } =
+    useStore();
   const isPinned = pinnedArticles.includes(data.id);
 
   const handlePin = React.useCallback(() => {
@@ -45,13 +46,17 @@ const NewsArticle: React.FC<NewsArticleProps> = ({ data }) => {
     }
   }, [isPinned, data.id, pinArticle, unpinArticle]);
 
+  const handleDelete = React.useCallback(() => {
+    deleteArticle(data.id);
+  }, [data.id, deleteArticle]);
+
   const RightSwipeActions = () => {
     return (
       <View style={styles.pinLayout}>
-        <View style={styles.flexCol}>
+        <Pressable style={styles.flexCol} onPress={handleDelete}>
           <EvilIcons name="trash" color={"#FFF"} size={32} />
           <Text style={styles.pin}>Delete</Text>
-        </View>
+        </Pressable>
         <Pressable style={styles.flexCol} onPress={handlePin}>
           <Entypo name="pin" color={"#FFF"} size={22} />
           <Text style={styles.pin}>{isPinned ? "Unpin" : "Pin"}</Text>

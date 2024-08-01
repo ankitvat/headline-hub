@@ -23,6 +23,7 @@ interface NewsState {
   addRandomHeadlines: () => void;
   refreshHeadlines: () => void;
   pinArticle: (id: string) => void;
+  deleteArticle: (id: string) => void;
   unpinArticle: (id: string) => void;
   dripTimer: NodeJS.Timer | null;
 }
@@ -41,21 +42,10 @@ const useStore = create<NewsState>()(
       newsListing: [],
       pinnedArticles: [],
       setNewsListing: (news) => set({ newsListing: news }),
-      mergeNewsListing: (news: NewsArticle[]) => {
-        set((state) => {
-          const pinned = state.pinnedArticles
-            .map((id) => state.newsListing.find((article) => article.id === id))
-            .filter(Boolean) as NewsArticle[];
-
-          const nonPinned = news.filter(
-            (article) => !state.pinnedArticles.includes(article.id)
-          );
-
-          return {
-            newsListing: [...pinned, ...nonPinned],
-          };
-        });
-      },
+      mergeNewsListing: (news) =>
+        set((state) => ({
+          newsListing: [...news, ...state.newsListing],
+        })),
       addRandomHeadlines: async () => {
         try {
           const response = await axios.get(
@@ -76,8 +66,9 @@ const useStore = create<NewsState>()(
                 state.newsListing.find((article) => article.id === id)
               )
               .filter(Boolean) as NewsArticle[];
+
             const nonPinned = articles.filter(
-              (newArticle: any) =>
+              (newArticle) =>
                 !state.newsListing.some(
                   (existingArticle) => existingArticle.id === newArticle.id
                 )
@@ -108,61 +99,37 @@ const useStore = create<NewsState>()(
               ...article,
               id: generateUUID(),
             }));
+          set({ newsListing: articles });
 
-          set((state) => {
-            const pinned = state.pinnedArticles
-              .map((id) =>
-                state.newsListing.find((article) => article.id === id)
-              )
-              .filter(Boolean) as NewsArticle[];
-
-            return {
-              newsListing: [...pinned, ...articles],
-            };
-          });
-
-          // const newTimer = setInterval(() => {
-          //   get().addRandomHeadlines();
-          // }, 10000);
-          // set({ dripTimer: newTimer });
+          const newTimer = setInterval(() => {
+            get().addRandomHeadlines();
+          }, 10000);
+          set({ dripTimer: newTimer });
         } catch (error) {
           console.log(JSON.stringify(error, null, 2));
         }
       },
-
       pinArticle: (id) => {
         console.log(`Pinning article ID: ${id}`);
-        set((state) => {
-          const pinned = [...new Set([id, ...state.pinnedArticles])];
-          const updatedListing = state.newsListing.filter(
-            (article) => article.id !== id
-          );
-          const pinnedArticle = state.newsListing.find(
-            (article) => article.id === id
-          );
-          return {
-            pinnedArticles: pinned,
-            newsListing: [pinnedArticle, ...updatedListing],
-          };
-        });
+        set((state) => ({
+          pinnedArticles: [...new Set([id, ...state.pinnedArticles])],
+        }));
       },
       unpinArticle: (id) => {
         console.log(`Unpinning article ID: ${id}`);
-        set((state) => {
-          const updatedPinnedArticles = state.pinnedArticles.filter(
+        set((state) => ({
+          pinnedArticles: state.pinnedArticles.filter(
             (articleId) => articleId !== id
-          );
-          const updatedListing = state.newsListing.filter(
-            (article) => article.id !== id
-          );
-          const unpinnedArticle = state.newsListing.find(
-            (article) => article.id === id
-          );
-          return {
-            pinnedArticles: updatedPinnedArticles,
-            newsListing: [...updatedListing, unpinnedArticle].filter(Boolean),
-          };
-        });
+          ),
+        }));
+      },
+      deleteArticle: (id) => {
+        set((state) => ({
+          newsListing: state.newsListing.filter((article) => article.id !== id),
+          pinnedArticles: state.pinnedArticles.filter(
+            (articleId) => articleId !== id
+          ),
+        }));
       },
       dripTimer: null,
     }),
